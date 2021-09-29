@@ -63,6 +63,9 @@ Other versions will probably work, but here is what I used:
     $ VirtualBox
     VirtualBox-6.1.26-2.fc33.x86_64
 
+    $ python --version
+    Python 3.9.7
+
 
 
 Usage
@@ -71,19 +74,19 @@ Usage
 create venv, install requirements, then run molecule from the project directory:
 
 ```bash
-[~] $ git clone https://github.com/tolland/ansible-lustre.git ; cd ansible-lustre
-[ansible-lustre] $ python3 -m venv .venv   ; source .venv/bin/activate
+git clone https://github.com/tolland/ansible-lustre.git ; cd ansible-lustre
+#...
+python3 -m venv .venv
+source .venv/bin/activate
 (.venv) $ pip install -r requirements.txt
-...
+#...
 
-$ molecule create
-....
 ```
 
 run the project to build the nodes:
 
 ```bash
-$ molecule converge
+(.venv) $ molecule converge
 INFO     default scenario test matrix: dependency, create, prepare, converge
 INFO     Performing prerun...
 TASK [Gathering Facts] *********************************************************
@@ -97,6 +100,8 @@ oss-1                      : ok=40   changed=23   unreachable=0    failed=0    s
 server-1                   : ok=45   changed=26   unreachable=0    failed=0    skipped=3    rescued=0    ignored=0
 ...
 ```
+
+(The build takes quite a while, as there are kernels and modules installed)
 
 Login to each of the clients, create files in `/mnt/lustre`, and watch them
 replicate across the cluster:
