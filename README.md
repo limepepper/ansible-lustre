@@ -6,12 +6,12 @@ vagrant.
 
 The project creates a network of 4 nodes.
 
-|  node | purpose  |  distro |
-|---|---|---|
-| server-1  | metadata and manager services  |  centos-7 |
-| oss-1  |  object store service  |   centos-7 |
-| client-1  |  example lustre client  |   centos-8 |
-| client-2  |  example lustre client  |   centos-8 |
+|  node | purpose  |  distro | notes |
+|---|---|---|---|
+| server-1  | metadata and manager services  |  centos-7 | 2x block devices for metadata and mgr |
+| oss-1  |  object store service  |   centos-7 | block device per object store |
+| client-1  |  example lustre client  |   centos-8 | mounts to /mnt/lustre |
+| client-2  |  example lustre client  |   centos-8 | mounts to /mnt/lustre |
 
 Description
 ------------
@@ -26,7 +26,7 @@ My observations on lusture from this experiment:
 
 ### positives
 
-- The lustre filesystem driver is really nice to use on the client.
+- The lustre filesystem driver is nice to use on the client.
 - Once setup, its quite easy to add more storage, and present it to the clients.
 - lustre filesystem simplifies away a lot of the pain of mounting nfs/samba or
 fuse based filesystems.
@@ -52,41 +52,91 @@ Requirements
 ------------
 
 This project was tested on fedora-34 using recent ansible and molecule. This
-demo uses vagrant with VirtualBox as the backend as it uses block devices for
-the lustre object store, (which is difficult to do in docker)
+demo uses vagrant with VirtualBox as the backend as it uses VirtualBox block
+devices for the lustre object store, (which is difficult to do in docker)
+
+Other versions will probably work, but here is what I used:
+
+    $ vagrant --version
+    Vagrant 2.2.18
+
+    $ VirtualBox
+    VirtualBox-6.1.26-2.fc33.x86_64
+
 
 
 Usage
 ----------------
 
-Run molecule from the project directory:
+create venv, install requirements, then run molecule from the project directory:
 
-    $ molecule create
-    $ molecule list
+```bash
+[~] $ git clone https://github.com/tolland/ansible-lustre.git ; cd ansible-lustre
+[ansible-lustre] $ python3 -m venv .venv   ; source .venv/bin/activate
+(.venv) $ pip install -r requirements.txt
+...
 
-      Instance Name │ Driver Name │ Provisioner Name │ Scenario Name │ Created │ Converged
-    ╶───────────────┼─────────────┼──────────────────┼───────────────┼─────────┼───────────╴
-      server-1      │ vagrant     │ ansible          │ default       │ true    │ false
-      oss-1         │ vagrant     │ ansible          │ default       │ true    │ false
-      client-1      │ vagrant     │ ansible          │ default       │ true    │ false
-      client-2      │ vagrant     │ ansible          │ default       │ true    │ false
+$ molecule create
+....
+```
 
 run the project to build the nodes:
 
-    $ molecule converge
-    INFO     default scenario test matrix: dependency, create, prepare, converge
-    INFO     Performing prerun...
-    ...
-    TASK [Gathering Facts] *********************************************************
-    task path: /home/tomhodder/Sync/ansible/roles/limepepper.lustre/molecule/default/converge.yml:3
-    ok: [oss-1]
-    ok: [server-1]
-    ok: [client-1]
-    ok: [client-2]
-    ...
+```bash
+$ molecule converge
+INFO     default scenario test matrix: dependency, create, prepare, converge
+INFO     Performing prerun...
+TASK [Gathering Facts] *********************************************************
+task path: /home/tomhodder/Sync/ansible/roles/limepepper.lustre/molecule/default/converge.yml:3
+...
 
+PLAY RECAP *********************************************************************
+client-1                   : ok=36   changed=19   unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+client-2                   : ok=36   changed=19   unreachable=0    failed=0    skipped=5    rescued=0    ignored=0
+oss-1                      : ok=40   changed=23   unreachable=0    failed=0    skipped=3    rescued=0    ignored=0
+server-1                   : ok=45   changed=26   unreachable=0    failed=0    skipped=3    rescued=0    ignored=0
+...
+```
 
+Login to each of the clients, create files in `/mnt/lustre`, and watch them
+replicate across the cluster:
 
+```
+$ molecule login --host client-1
+INFO     Running default > login
+Last login: Wed Sep 29 06:47:40 2021 from 10.0.2.2
+
+[vagrant@client-1 ~]$ sudo su -
+[root@client-1 ~]# cd /mnt/lustre/
+[root@client-1 lustre]# touch test
+[root@client-1 lustre]# ls -l
+total 0
+-rw-r--r--  1 root root    0 Sep 29 06:49 test
+```
+
+then login to the other client, and confirm that they have appeared:
+
+```
+$ molecule login --host client-2
+INFO     Running default > login
+[root@client-2 ~]# cd /mnt/lustre/
+[root@client-2 lustre]# ls
+test
+[root@client-2 lustre]# stat test
+  File: test
+  Size: 0               Blocks: 0          IO Block: 4194304 regular empty file
+Device: 2c54f966h/743766374d    Inode: 144115205272502273  Links: 1
+Access: (0644/-rw-r--r--)  Uid: (    0/    root)   Gid: (    0/    root)
+Access: 2021-09-29 06:49:20.000000000 +0000
+Modify: 2021-09-29 06:49:20.000000000 +0000
+Change: 2021-09-29 06:49:20.000000000 +0000
+ Birth: -
+ ```
+
+Obviously, you can now experiment with some other features of Lustre, including
+permissions, encryption etc...
+
+Enjoy!
 
 
 
