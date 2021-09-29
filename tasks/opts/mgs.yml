@@ -1,0 +1,32 @@
+---
+
+- tags: [ lustre, lustre-mgs ]
+  block:
+
+    - debug:
+        var: lustre_fsname
+
+    - debug:
+        var: lustre_mgt_dev
+
+    - file:
+        path: "/mnt/mgt"
+        state: directory
+
+    - shell:
+        cmd: |
+          if [ -b "{{ lustre_mgt_dev }}" ] ; then
+            if file /dev/sdb | grep "block special" ; then
+              if tunefs.lustre {{ lustre_mgt_dev }} | grep "data: not found" ; then
+                  mkfs.lustre --mgs \
+                       {{ lustre_mgt_dev }}
+              fi
+            fi
+          fi
+
+    - name: Mount up mgt device
+      ansible.posix.mount:
+        path:  /mnt/mgt
+        src: "{{ lustre_mgt_dev }}"
+        fstype: lustre
+        state: mounted

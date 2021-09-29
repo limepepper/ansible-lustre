@@ -1,0 +1,45 @@
+---
+
+- tags: [ lustre, lustre-oss ]
+  block:
+
+    - debug:
+        var: lustre_fsname
+
+    - debug:
+        var: lustre_mdt_dev
+
+    - shell:
+        cmd: |
+          if [ -b "{{ item.dev }}" ] ; then
+            if file {{ item.dev }} | grep "block special" ; then
+              if tunefs.lustre {{ item.dev }} | grep "data: not found" ; then
+                  mkfs.lustre \
+                      --fsname={{ lustre_fsname }} \
+                        --ost \
+                      --mgsnode=192.168.0.1@tcp  \
+                      --index={{ item.index }} \
+                      {{ item.dev }}
+              fi
+            fi
+          fi
+      with_items: "{{ lustre_oss_devs }}"
+
+    - file:
+        path: "/mnt/{{ item.name }}"
+        state: directory
+      with_items: "{{ lustre_oss_devs }}"
+
+    - name: Mount up mdt device
+      ansible.posix.mount:
+        path:  "/mnt/{{ item.name }}"
+        src: "{{ item.dev }}"
+        fstype: lustre
+        state: mounted
+      with_items: "{{ lustre_oss_devs }}"
+
+        # lustre_oss_devs:
+        #   - name: ost0
+        #     dev: /dev/sdb
+        #   - name: ost1
+        #     dev: /dev/sdc

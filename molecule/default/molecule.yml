@@ -1,0 +1,107 @@
+---
+dependency:
+  name: galaxy
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+platforms:
+  - name: server-1
+    box: centos/7
+    box_version: 1803.01
+    interfaces:
+      - virtualbox__intnet: test_network
+        network_name: private_network
+        ip: 192.168.0.1
+    groups:
+      - lustre
+      - lustre_server
+    memory: 4096
+    cpus: 2
+    provider_raw_config_args:
+      # CentOS vagrant boxes seem to be missing the SATA Controller
+      - 'customize [ "storagectl", :id, "--name", "SATA Controller", "--add", "SATA", "--controller", "IntelAhci" ]'
+      - 'customize [ "createhd", "--filename", "disk-1-1.vdi" , "--size", "2000", "--format", "VDI" ]'
+      - 'customize [ "storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--device", 0, "--type", "hdd", "--medium", "disk-1-1.vdi" ]'
+      - 'customize [ "createhd", "--filename", "disk-2-1.vdi" , "--size", "2000", "--format", "VDI" ]'
+      - 'customize [ "storageattach", :id, "--storagectl", "SATA Controller", "--port", 2, "--device", 0, "--type", "hdd", "--medium", "disk-2-1.vdi" ]'
+  - name: oss-1
+    box: centos/7
+    box_version: 1803.01
+    interfaces:
+      # - auto_config: true
+      #   network_name: private_network
+      #   type: dhcp
+      - virtualbox__intnet: test_network
+        network_name: private_network
+        ip: 192.168.0.2
+    groups:
+      - lustre
+      - lustre_oss
+    # auto_config: true
+    # options:
+    #   append_platform_to_hostname: no
+    memory: 4096
+    cpus: 2
+    provider_raw_config_args:
+      # CentOS vagrant boxes seem to be missing the SATA Controller
+      - 'customize [ "storagectl", :id, "--name", "SATA Controller", "--add", "SATA", "--controller", "IntelAhci" ]'
+      - 'customize [ "createhd", "--filename", "disk-3-1.vdi" , "--size", "8000", "--format", "VDI" ]'
+      - 'customize [ "storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--device", 0, "--type", "hdd", "--medium", "disk-3-1.vdi" ]'
+      - 'customize [ "createhd", "--filename", "disk-4-1.vdi" , "--size", "8000", "--format", "VDI" ]'
+      - 'customize [ "storageattach", :id, "--storagectl", "SATA Controller", "--port", 2, "--device", 0, "--type", "hdd", "--medium", "disk-4-1.vdi" ]'
+  - name: client-1
+    box: centos/8
+    box_version: 2011.0
+    interfaces:
+      - virtualbox__intnet: test_network
+        network_name: private_network
+        ip: 192.168.0.3
+    groups:
+      - lustre
+      - lustre_client
+    # auto_config: true
+    memory: 4096
+    cpus: 2
+  - name: client-2
+    box: centos/8
+    box_version: 2011.0
+    interfaces:
+      # - auto_config: true
+      #   network_name: private_network
+      #   type: dhcp
+      - virtualbox__intnet: test_network
+        network_name: private_network
+        ip: 192.168.0.4
+    groups:
+      - lustre
+      - lustre_client
+    # auto_config: true
+    # options:
+    #   append_platform_to_hostname: no
+    memory: 4096
+    cpus: 2
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      verbosity: 2
+      stdout_callback: yaml
+  inventory:
+    group_vars:
+      lustre:
+        lustre_fsname: lustre
+    host_vars:
+      server-1:
+        lustre_mgt_dev: /dev/sdb
+        lustre_mdt_dev: /dev/sdc
+      oss-1:
+        lustre_oss_devs:
+          - name: ost0
+            dev: /dev/sdb
+            index: 0
+          - name: ost1
+            dev: /dev/sdc
+            index: 1
+verifier:
+  name: ansible

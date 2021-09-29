@@ -1,0 +1,13 @@
+---
+
+- tags: [ lustre ]
+  block:
+
+    # configure distro specific repo sources
+    - include_tasks: repo/main.yml
+      tags: always
+
+    # install the packages
+    - include_tasks: install/main.yml
+      tags: always
+

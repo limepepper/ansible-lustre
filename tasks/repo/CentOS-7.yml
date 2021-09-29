@@ -1,0 +1,38 @@
+---
+
+
+- name: Add repository
+  yum_repository:
+    name: lustre-client
+    description: lustre client repo
+    baseurl: https://downloads.whamcloud.com/public/lustre/latest-release/el7/client
+    gpgcheck: no
+    exclude: "*debuginfo*"
+
+- name: Add repository
+  yum_repository:
+    name: lustre-server
+    description: lustre server repo
+    baseurl: https://downloads.whamcloud.com/public/lustre/latest-release/el7/server
+    gpgcheck: no
+    exclude: "*debuginfo*"
+
+- name: Add repository
+  yum_repository:
+    name: lustre-e2fsprogs
+    description: lustre e2fsprogs repo
+    baseurl: https://downloads.whamcloud.com/public/e2fsprogs/latest/el7/
+    gpgcheck: no
+    exclude: "*debuginfo*"
+
+- name: Add repository
+  yum_repository:
+    name: patchless-ldiskfs-server
+    description: patchless-ldiskfs-server repo
+    baseurl: https://downloads.whamcloud.com/public/lustre/latest-release/el7/patchless-ldiskfs-server
+    gpgcheck: no
+    exclude: "*debuginfo*"
+
+# - name: Install the zfs-release
+#   yum:
+#     name: http://download.zfsonlinux.org/epel/zfs-release.el7_4.noarch.rpm

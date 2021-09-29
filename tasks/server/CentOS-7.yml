@@ -1,0 +1,55 @@
+---
+
+- tags: [ lustre, lustre-server ]
+  block:
+
+    - name: Install a list of packages
+      yum:
+        name:
+          - linux-firmware-20200421-80.git78c0348.el7_9.noarch
+
+    - name: install e2fsprogs packages
+      yum:
+        name:
+          - e2fsprogs
+        disablerepo: "*"
+        enablerepo: "lustre-e2fsprogs"
+
+    - name: install lustre kernel packages
+      yum:
+        name:
+          - kernel-3.10.0-1160.25.1.el7_lustre
+          - kernel-devel
+          - kernel-headers
+          # - kernel-tools
+          # - kernel-tools-libs
+          # - kernel-tools-libs-devel
+        disablerepo: "base,extras,updates"
+        enablerepo: "lustre-server"
+      register: kernel_installed
+
+    - name: Unconditionally reboot the machine with all defaults
+      reboot:
+      when: kernel_installed.changed
+
+    - name: install zfs packages
+      package:
+        name:
+          - zfs
+          - libzfs2-devel
+
+    - name: install lustre server packages
+      package:
+        name:
+          # - lustre-all-dkms
+          # - kmod-lustre-osd-ldiskfs
+          # - libss
+          - lustre
+          # - lustre-iokit
+          - lustre-modules
+          # - lustre-osd-ldiskfs-mount
+          # - lustre-osd-zfs-mount
+          # - lustre-resource-agents
+          # - lustre-tests
+          # - libcom_err
+          # - lustre-dkms

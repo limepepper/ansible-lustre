@@ -1,0 +1,21 @@
+---
+
+
+- name: install lustre client packages
+  package:
+    name:
+      # - lustre-all-dkms
+      # - kmod-lustre-osd-ldiskfs
+      # - libss
+      - lustre-client
+      # - lustre-iokit
+      # - lustre-modules
+      # - lustre-osd-ldiskfs-mount
+      # - lustre-osd-zfs-mount
+      # - lustre-resource-agents
+      # - lustre-tests
+      # - libcom_err
+      # - lustre-dkms
+
+
+

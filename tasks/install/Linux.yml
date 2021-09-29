@@ -1,0 +1,66 @@
+---
+
+- name: Disable SELinux
+  ansible.posix.selinux:
+    state: disabled
+  register: selinux_disabled
+
+- name: Unconditionally reboot the machine with all defaults
+  reboot:
+  when: selinux_disabled.changed
+
+- name: remove confliced package
+  package:
+    name:
+      - selinux-policy-targeted
+    state: absent
+
+- name: set hostname in hosts file
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^{{ ansible_eth1.ipv4.address }}'
+    line: "{{ ansible_eth1.ipv4.address }}    {{ inventory_hostname }}"
+
+- name: install prereq packages
+  package:
+    name:
+      - wget
+      - perl
+      # - libgssglue
+      - net-snmp
+      - libyaml
+      - sg3_utils
+      - openmpi
+      - lsof
+      - rsync
+      - kernel-firmware
+
+- name: lnet module config file
+  template:
+    src: modprobe.d/lustre.conf
+    dest: /etc/modprobe.d/lustre.conf
+    # owner: ceph
+    # group: ceph
+    mode: 0644
+  # notify: restart bacula-fd
+
+
+# - name: make dirs for ceph
+#   file:
+#     state: directory
+#     path: "{{ item }}"
+#     owner: ceph
+#     group: ceph
+#     mode: 0700
+#   with_items:
+#     - "/var/lib/ceph/mon/{{ ceph_cluster }}-mon-node1"
+
+# - name: ceph config file
+#   template:
+#     src: etc/ceph/ceph.conf
+#     dest: /etc/ceph/ceph.conf
+#     owner: ceph
+#     group: ceph
+#     mode: 0644
+#   # notify: restart bacula-fd
+

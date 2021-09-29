@@ -1,0 +1,44 @@
+---
+
+- tags: [ lustre, lustre-client ]
+  block:
+
+    - name: Install from powertools
+      dnf:
+        name: libyaml-devel
+        enablerepo: powertools
+        state: present
+
+    - name: Install the kmod from remote repo
+      dnf:
+        name: 'https://downloads.whamcloud.com/public/lustre/lustre-2.14.0/el8.3/client/RPMS/x86_64/kmod-lustre-client-2.14.0-1.el8.x86_64.rpm'
+        state: present
+        disable_gpg_check: yes
+
+    - name: Add the lustre module
+      community.general.modprobe:
+        name: lustre
+        state: present
+
+    - file:
+        path: "/mnt/{{ lustre_fsname }}"
+        state: directory
+
+    # - shell:
+    #     cmd: |
+    #       if [ -b "{{ lustre_mdt_dev }}" ] ; then
+    #         if file {{ lustre_mdt_dev }} | grep "block special" ; then
+    #           if tunefs.lustre {{ lustre_mdt_dev }} | grep "data: not found" ; then
+    #                 mount -t lustre   \
+    #                       192.168.0.1@tcp:/{{ lustre_fsname }}   \
+    #                         /mnt/{{ lustre_fsname }}
+    #           fi
+    #         fi
+    #       fi
+
+    - name: Mount up lustre filesystem
+      ansible.posix.mount:
+        path: "/mnt/{{ lustre_fsname }}"
+        src: 192.168.0.1@tcp:/lustre
+        fstype: lustre
+        state: mounted

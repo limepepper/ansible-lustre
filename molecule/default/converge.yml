@@ -1,0 +1,73 @@
+---
+
+- name: prerequisites
+  hosts: all
+  become: true
+  tasks:
+
+    - name: "Include limepepper.bootstrap"
+      include_role:
+        name: "limepepper.bootstrap"
+      vars:
+        bootstrap_opts:
+          - pkg-tools/main
+      tags: always
+
+    - name: "Include limepepper.lustre"
+      include_role:
+        name: "limepepper.lustre"
+      tags: always
+
+- name: Converge
+  hosts: lustre_server, lustre_oss
+  become: true
+  tasks:
+    - name: "Include limepepper.lustre"
+      include_role:
+        name: "limepepper.lustre"
+        tasks_from: server/main.yml
+      tags: always
+
+- name: Converge
+  hosts: lustre_server
+  become: true
+  tasks:
+
+    - name: "Include limepepper.lustre"
+      include_role:
+        name: "limepepper.lustre"
+        tasks_from: opts/mgs.yml
+      tags: always
+
+    - name: "Include limepepper.lustre"
+      include_role:
+        name: "limepepper.lustre"
+        tasks_from: opts/mdt.yml
+      tags: always
+
+- name: Converge
+  hosts: lustre_oss
+  become: true
+  tasks:
+    - name: "Include limepepper.lustre"
+      include_role:
+        name: "limepepper.lustre"
+        tasks_from: opts/oss.yml
+      tags: always
+
+
+- name: Converge
+  hosts: lustre_client
+  become: true
+  tasks:
+    - name: "Include limepepper.lustre"
+      include_role:
+        name: "limepepper.lustre"
+        tasks_from: client/main.yml
+      tags: always
+
+    - name: "Include limepepper.lustre"
+      include_role:
+        name: "limepepper.lustre"
+        tasks_from: opts/client.yml
+      tags: always

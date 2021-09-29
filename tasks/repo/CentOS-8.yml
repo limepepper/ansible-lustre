@@ -1,0 +1,18 @@
+---
+
+
+- name: Add repository
+  yum_repository:
+    name: lustre-client
+    description: lustre repo
+    baseurl: https://downloads.whamcloud.com/public/lustre/latest-release/el8/client
+    gpgcheck: no
+
+
+- name: Add repository
+  yum_repository:
+    name: lustre-e2fsprogs
+    description: lustre e2fsprogs repo
+    baseurl: https://downloads.whamcloud.com/public/e2fsprogs/latest/el8/
+    gpgcheck: no
+
