@@ -19,6 +19,9 @@ Description
 This project is mainly for the purposes of research, to determine how useful and
 relevant the various clustered filesystems are to normal use cases.
 
+The role could plausibly be used as a basic for further work, but in the current
+statue its largely at the level of POC.
+
 Results
 -------
 

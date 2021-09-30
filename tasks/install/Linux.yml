@@ -43,24 +43,3 @@
     # group: ceph
     mode: 0644
   # notify: restart bacula-fd
-
-
-# - name: make dirs for ceph
-#   file:
-#     state: directory
-#     path: "{{ item }}"
-#     owner: ceph
-#     group: ceph
-#     mode: 0700
-#   with_items:
-#     - "/var/lib/ceph/mon/{{ ceph_cluster }}-mon-node1"
-
-# - name: ceph config file
-#   template:
-#     src: etc/ceph/ceph.conf
-#     dest: /etc/ceph/ceph.conf
-#     owner: ceph
-#     group: ceph
-#     mode: 0644
-#   # notify: restart bacula-fd
-

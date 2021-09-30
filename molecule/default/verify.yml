@@ -8,3 +8,40 @@
   - name: Example assertion
     assert:
       that: true
+
+
+- name: Verify server componenets
+  hosts:
+    - lustre_server
+    - lustre_oss
+  gather_facts: false
+  tasks:
+  - wait_for:
+      host: "{{ inventory_hostname }}"
+      port: 988
+
+- name: Verify client sync
+  hosts: client-1
+  become: true
+  tasks:
+    - command: ls /mnt/lustre
+    - shell: touch "/mnt/lustre/$(date +%s)_{{ inventory_hostname }}"
+    - shell: ls /mnt/lustre
+    - command: touch /mnt/lustre/test_client-1
+
+- name: Verify client sync
+  hosts: client-2
+  become: true
+  tasks:
+    - command: ls /mnt/lustre
+    - shell: touch "/mnt/lustre/$(date +%s)_{{ inventory_hostname }}"
+    - shell: ls /mnt/lustre
+
+    - stat:
+        path: /mnt/lustre/test_client-1
+      register: p
+
+    - assert:
+        that:
+          - p.stat.exists and p.stat.isreg
+
