@@ -1,0 +1,52 @@
+---
+
+- tags: [ lustre, lustre-mdt ]
+  block:
+
+    - file:
+        path: "/mnt/{{ item.name }}"
+        state: directory
+
+    - shell:
+        cmd: |
+          get_block_device(){
+            for device in $(ls /dev/sd?) ; do
+              SERIAL=$(udevadm info --query=all --name=${device} |
+                egrep '^E: ID_SERIAL_SHORT' |
+                  awk -F'=' '{ print $2 }')
+              if [ "$SERIAL" = "$1" ] ; then
+                echo ${device}
+                return
+              fi
+            done
+            echo "not found device for serial $1" && return 1
+          }
+          get_block_device {{ item.serial }}
+
+      register: mdt_dev_out
+
+    - set_fact:
+        lustre_mdt_dev: "{{ mdt_dev_out.stdout }}"
+
+
+    - shell:
+        cmd: |
+          if [ -b "{{ lustre_mdt_dev }}" ] ; then
+            if file {{ lustre_mdt_dev }} | grep "block special" ; then
+              if tunefs.lustre {{ lustre_mdt_dev }} | grep "data: not found" ; then
+                  mkfs.lustre \
+                      --fsname {{ lustre_fsname }} \
+                      --mgsnode=192.168.0.1@tcp  \
+                      --mdt \
+                      --index={{ item.index }} \
+                      {{ lustre_mdt_dev }}
+              fi
+            fi
+          fi
+
+    - name: Mount up mdt device
+      ansible.posix.mount:
+        path:  "/mnt/{{ item.name }}"
+        src: "{{ lustre_mdt_dev }}"
+        fstype: lustre
+        state: mounted

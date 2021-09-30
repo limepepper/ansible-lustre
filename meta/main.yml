@@ -1,20 +1,19 @@
 galaxy_info:
   namespace: limepepper
   role_name: lustre
-  author: your name
-  description: your role description
-  company: your company (optional)
+  author: Tom Hodder
+  description: DevOps
+  company: Lime Pepper Ltd
 
   # issue_tracker_url: http://example.com/issue/tracker
   license: license (GPL-2.0-or-later, MIT, etc)
   min_ansible_version: 2.5
   # min_ansible_container_version:
 
-  # platforms:
-  # - name: Fedora
-  #   versions:
-  #   - all
-  #   - 25
+  platforms:
+  - name: Fedora
+    versions:
+    - 34
 
   galaxy_tags: []
 

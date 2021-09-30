@@ -90,7 +90,7 @@ run the project to build the nodes:
 INFO     default scenario test matrix: dependency, create, prepare, converge
 INFO     Performing prerun...
 TASK [Gathering Facts] *********************************************************
-task path: /home/tomhodder/Sync/ansible/roles/limepepper.lustre/molecule/default/converge.yml:3
+task path: /molecule/default/converge.yml:3
 ...
 
 PLAY RECAP *********************************************************************
@@ -125,8 +125,10 @@ then login to the other client, and confirm that they have appeared:
 $ molecule login --host client-2
 INFO     Running default > login
 [root@client-2 ~]# cd /mnt/lustre/
+
 [root@client-2 lustre]# ls
 test
+
 [root@client-2 lustre]# stat test
   File: test
   Size: 0               Blocks: 0          IO Block: 4194304 regular empty file

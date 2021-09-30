@@ -24,18 +24,6 @@
         path: "/mnt/{{ lustre_fsname }}"
         state: directory
 
-    # - shell:
-    #     cmd: |
-    #       if [ -b "{{ lustre_mdt_dev }}" ] ; then
-    #         if file {{ lustre_mdt_dev }} | grep "block special" ; then
-    #           if tunefs.lustre {{ lustre_mdt_dev }} | grep "data: not found" ; then
-    #                 mount -t lustre   \
-    #                       192.168.0.1@tcp:/{{ lustre_fsname }}   \
-    #                         /mnt/{{ lustre_fsname }}
-    #           fi
-    #         fi
-    #       fi
-
     - name: Mount up lustre filesystem
       ansible.posix.mount:
         path: "/mnt/{{ lustre_fsname }}"

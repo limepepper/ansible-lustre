@@ -32,13 +32,13 @@
       reboot:
       when: kernel_installed.changed
 
-    - name: install zfs packages
-      package:
-        name:
-          - zfs
-          - libzfs2-devel
+    # - name: install zfs packages
+    #   package:
+    #     name:
+    #       - zfs
+    #       - libzfs2-devel
 
-    - name: install lustre server packages
+    - name: install lustre other packages
       package:
         name:
           # - lustre-all-dkms

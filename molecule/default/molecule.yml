@@ -16,15 +16,26 @@ platforms:
     groups:
       - lustre
       - lustre_server
-    memory: 4096
+    memory: 2048
     cpus: 2
     provider_raw_config_args:
       # CentOS vagrant boxes seem to be missing the SATA Controller
       - 'customize [ "storagectl", :id, "--name", "SATA Controller", "--add", "SATA", "--controller", "IntelAhci" ]'
-      - 'customize [ "createhd", "--filename", "disk-1-1.vdi" , "--size", "2000", "--format", "VDI" ]'
-      - 'customize [ "storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--device", 0, "--type", "hdd", "--medium", "disk-1-1.vdi" ]'
-      - 'customize [ "createhd", "--filename", "disk-2-1.vdi" , "--size", "2000", "--format", "VDI" ]'
-      - 'customize [ "storageattach", :id, "--storagectl", "SATA Controller", "--port", 2, "--device", 0, "--type", "hdd", "--medium", "disk-2-1.vdi" ]'
+
+      - 'customize [ "storageattach", :id, "--storagectl", "SATA Controller", "--port", 0, "--type", "dvddrive", "--medium", "emptydrive" ]'
+
+      - 'customize [ "createhd", "--filename", "disk-mgr.vdi" , "--size", "2000", "--format", "VDI" ]'
+      - 'customize [ "storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--type", "hdd", "--medium", "disk-mgr.vdi", "--comment", "This is the Mgr disk" ]'
+      - 'customize [ "setextradata", :id, "VBoxInternal/Devices/ahci/0/Config/Port1/SerialNumber", "mgr-1" ]'
+
+      - 'customize [ "createhd", "--filename", "disk-mdt.vdi" , "--size", "2000", "--format", "VDI" ]'
+      - 'customize [ "storageattach", :id, "--storagectl", "SATA Controller", "--port", 2, "--type", "hdd", "--medium", "disk-mdt.vdi", "--comment", "This is the MDT disk" ]'
+      - 'customize [ "setextradata", :id, "VBoxInternal/Devices/ahci/0/Config/Port2/SerialNumber", "mdt-1" ]'
+
+      - 'customize [ "createhd", "--filename", "disk-other.vdi" , "--size", "2000", "--format", "VDI" ]'
+      - 'customize [ "storageattach", :id, "--storagectl", "SATA Controller", "--port", 7, "--type", "hdd", "--medium", "disk-other.vdi", "--comment", "This is the MDT disk" ]'
+      - 'customize [ "setextradata", :id, "VBoxInternal/Devices/ahci/0/Config/Port7/SerialNumber", "other-1" ]'
+
   - name: oss-1
     box: centos/7
     box_version: 1803.01
@@ -41,15 +52,22 @@ platforms:
     # auto_config: true
     # options:
     #   append_platform_to_hostname: no
-    memory: 4096
+    memory: 2048
     cpus: 2
     provider_raw_config_args:
       # CentOS vagrant boxes seem to be missing the SATA Controller
       - 'customize [ "storagectl", :id, "--name", "SATA Controller", "--add", "SATA", "--controller", "IntelAhci" ]'
-      - 'customize [ "createhd", "--filename", "disk-3-1.vdi" , "--size", "8000", "--format", "VDI" ]'
-      - 'customize [ "storageattach", :id, "--storagectl", "SATA Controller", "--port", 1, "--device", 0, "--type", "hdd", "--medium", "disk-3-1.vdi" ]'
-      - 'customize [ "createhd", "--filename", "disk-4-1.vdi" , "--size", "8000", "--format", "VDI" ]'
-      - 'customize [ "storageattach", :id, "--storagectl", "SATA Controller", "--port", 2, "--device", 0, "--type", "hdd", "--medium", "disk-4-1.vdi" ]'
+
+      - 'customize [ "storageattach", :id, "--storagectl", "SATA Controller", "--port", 0, "--type", "dvddrive", "--medium", "emptydrive" ]'
+
+      - 'customize [ "createhd", "--filename", "disk-ost-0.vdi" , "--size", "2000", "--format", "VDI" ]'
+      - 'customize [ "storageattach", :id, "--storagectl", "SATA Controller", "--port", 10, "--type", "hdd", "--medium", "disk-ost-0.vdi", "--comment", "This is the 1st Object Store disk" ]'
+      - 'customize [ "setextradata", :id, "VBoxInternal/Devices/ahci/0/Config/Port10/SerialNumber", "ost-0" ]'
+
+      - 'customize [ "createhd", "--filename", "disk-ost-1.vdi" , "--size", "2000", "--format", "VDI" ]'
+      - 'customize [ "storageattach", :id, "--storagectl", "SATA Controller", "--port", 20, "--type", "hdd", "--medium", "disk-ost-1.vdi", "--comment", "This is the 2nd Object Store disk" ]'
+      - 'customize [ "setextradata", :id, "VBoxInternal/Devices/ahci/0/Config/Port20/SerialNumber", "ost-1" ]'
+
   - name: client-1
     box: centos/8
     box_version: 2011.0
@@ -61,7 +79,7 @@ platforms:
       - lustre
       - lustre_client
     # auto_config: true
-    memory: 4096
+    memory: 2048
     cpus: 2
   - name: client-2
     box: centos/8
@@ -79,7 +97,7 @@ platforms:
     # auto_config: true
     # options:
     #   append_platform_to_hostname: no
-    memory: 4096
+    memory: 2048
     cpus: 2
 provisioner:
   name: ansible
@@ -93,15 +111,20 @@ provisioner:
         lustre_fsname: lustre
     host_vars:
       server-1:
-        lustre_mgt_dev: /dev/sdb
-        lustre_mdt_dev: /dev/sdc
+        lustre_mgt_devs:
+          - name: mgr
+            serial: mgr-1
+        lustre_mdt_devs:
+          - name: mdt
+            serial: mdt-1
+            index: 0
       oss-1:
         lustre_oss_devs:
           - name: ost0
-            dev: /dev/sdb
+            serial: ost-0
             index: 0
           - name: ost1
-            dev: /dev/sdc
+            serial: ost-1
             index: 1
 verifier:
   name: ansible

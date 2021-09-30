@@ -1,0 +1,9 @@
+---
+
+- tags: [ lustre, lustre-mgs ]
+  block:
+
+    - include_tasks:
+        file: opts/mgs_loop.yml
+      loop: "{{ lustre_mgt_devs }}"
+      tags: [ always ]

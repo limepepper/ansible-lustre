@@ -1,0 +1,2 @@
+molecule==3.5.1
+-e git+https://github.com/apatard/molecule-vagrant.git@multiplatform#egg=molecule_vagrant

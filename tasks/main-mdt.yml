@@ -1,0 +1,8 @@
+---
+
+- tags: [ lustre, lustre-mdt ]
+  block:
+
+    - include_tasks: opts/mdt_loop.yml
+      loop: "{{ lustre_mdt_devs }}"
+      tags: [ always ]

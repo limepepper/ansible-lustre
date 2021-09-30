@@ -1,0 +1,8 @@
+---
+
+- tags: [ lustre, lustre-oss ]
+  block:
+
+    - include_tasks: opts/oss_loop.yml
+      loop: "{{ lustre_oss_devs }}"
+      tags: [ always ]

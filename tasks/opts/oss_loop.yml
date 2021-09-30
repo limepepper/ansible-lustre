@@ -1,0 +1,51 @@
+---
+
+- tags: [ lustre, lustre-oss ]
+  block:
+
+    - file:
+        path: "/mnt/{{ item.name }}"
+        state: directory
+
+    - shell:
+        cmd: |
+          get_block_device(){
+            for device in $(ls /dev/sd?) ; do
+              SERIAL=$(udevadm info --query=all --name=${device} |
+                egrep '^E: ID_SERIAL_SHORT' |
+                  awk -F'=' '{ print $2 }')
+              if [ "$SERIAL" = "$1" ] ; then
+                echo ${device}
+                return
+              fi
+            done
+            echo "not found device for serial $1" && return 1
+          }
+          get_block_device {{ item.serial }}
+
+      register: oss_dev_out
+
+    - set_fact:
+        lustre_ost_dev: "{{ oss_dev_out.stdout }}"
+
+    - shell:
+        cmd: |
+          if [ -b "{{ lustre_ost_dev }}" ] ; then
+            if file {{ lustre_ost_dev }} | grep "block special" ; then
+              if tunefs.lustre {{ lustre_ost_dev }} | grep "data: not found" ; then
+                  mkfs.lustre \
+                      --fsname={{ lustre_fsname }} \
+                        --ost \
+                      --mgsnode=192.168.0.1@tcp  \
+                      --index={{ item.index }} \
+                      {{ lustre_ost_dev }}
+              fi
+            fi
+          fi
+
+    - name: Mount up oss device
+      ansible.posix.mount:
+        path:  "/mnt/{{ item.name }}"
+        src: "{{ lustre_ost_dev }}"
+        fstype: lustre
+        state: mounted

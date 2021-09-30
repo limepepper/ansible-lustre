@@ -9,3 +9,5 @@
         name: "{{ item }}"
       with_items:
         - iproute
+        - hdparm
+        - lshw
